@@ -1,3 +1,6 @@
 node_modules/
 
 package-lock.json
+
+tohka_yatogami.json
+tohka_yatogami_store_multi.json

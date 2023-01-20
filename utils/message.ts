@@ -1,21 +1,21 @@
 import { proto } from "@adiwajshing/baileys";
 
 export default class Message extends proto.WebMessageInfo {
-  id?: string | null;
-  jid?: string | null;
-  name?: string | null;
-  fromMe?: boolean | null;
-  isGroup?: boolean;
-  from?: string | null;
-  body?: string | null;
+  id: string = "";
+  jid: string = "";
+  name: string = "";
+  fromMe: boolean = false;
+  isGroup: boolean = false;
+  from: string = "";
+  body: string = "";
   constructor(m: proto.IWebMessageInfo) {
     super(m);
-    this.id = m.key.id;
-    this.jid = m.key.remoteJid;
-    this.name = m.pushName;
-    this.fromMe = m.key.fromMe;
+    this.id = m.key.id as string;
+    this.jid = m.key.remoteJid as string;
+    this.name = m.pushName as string;
+    this.fromMe = m.key.fromMe as boolean;
     this.isGroup = this.jid?.endsWith("@g.us");
-    this.from = this.isGroup ? m.key.participant : this.jid;
-    this.body = m.message?.conversation;
+    this.from = this.isGroup ? (m.key.participant as string) : this.jid;
+    this.body = m.message?.conversation as string;
   }
 }

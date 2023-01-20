@@ -13,9 +13,9 @@
       "@adiwajshing/baileys": "^4.4.0",
       "@adiwajshing/keyed-db": "^0.2.4",
       "@hapi/boom": "^10.0.0",
-      "pino": "^8.8.0"
-   },
-   "devDependencies": {
-      "@types/figlet": "^1.5.5"
+      "nodemon": "^2.0.20",
+      "pino": "^8.8.0",
+      "qrcode-terminal": "^0.12.0",
+      "ts-node": "^10.9.1"
    }
 }
