@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 
 import makeWASocket, {
@@ -13,6 +14,9 @@ import pino from "pino";
 import MAIN_LOGGER from "./utils/logger";
 import Message from "./utils/message";
 import getAllLibIds from "./utils/getAllLibIds";
+
+const dir = "./tmp";
+if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 
 const useStore = !process.argv.includes("--no-store");
 
