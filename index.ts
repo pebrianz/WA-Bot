@@ -12,7 +12,7 @@ import pino from "pino";
 
 import MAIN_LOGGER from "./utils/logger";
 import Message from "./utils/message";
-import getListLibs from "./utils/getListLibs";
+import getAllLibIds from "./utils/getAllLibIds";
 
 const useStore = !process.argv.includes("--no-store");
 
@@ -34,7 +34,7 @@ setInterval(() => {
 
 async function startSock() {
   try {
-    const files = await getListLibs();
+    const files = await getAllLibIds();
     console.log(files);
 
     const { version, isLatest } = await fetchLatestBaileysVersion();
@@ -97,20 +97,10 @@ async function startSock() {
         if (!message) return;
         const msg = new Message(message);
         console.log(msg);
-        if (
-          msg.body.text == "AERO!!!" &&
-          msg.jid !== "120363044393265188@g.us"
-        ) {
-          const { participants } = await sock.groupMetadata(msg.jid);
-          sock.sendMessage(msg.jid, {
-            text: "AERO!!!!",
-            mentions: participants.map((v) => v.id),
-          });
-        }
         for (const file of files) {
           const { default: lib } = await require(path.join(
             __dirname,
-            "/libs/",
+            "/lib/",
             file
           ));
           const regex = new RegExp(`^.${file}|^. ${file}`);
@@ -118,11 +108,10 @@ async function startSock() {
             await lib(sock, msg);
           }
         }
-      } catch (e: any) {
-        console.log(e.messages);
+      } catch (error: any) {
+        console.log(error);
       }
     });
-
     return sock;
   } catch (error) {
     console.log(error);

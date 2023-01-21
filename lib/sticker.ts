@@ -27,9 +27,13 @@ const sticker = async (conn: WASocket, m: Message) => {
       .toFormat("webp")
       .save("./tmp/sticker.webp")
       .on("end", async () => {
-        const sticker = fs.createReadStream("./tmp/sticker.webp");
-        await conn.sendMessage(m.jid, { sticker: { stream: sticker } });
-        shell.exec("rm -rf ./tmp/sticker*");
+        try {
+          const sticker = fs.createReadStream("./tmp/sticker.webp");
+          await conn.sendMessage(m.jid, { sticker: { stream: sticker } });
+          shell.exec("rm -rf ./tmp/sticker*");
+        } catch (error) {
+          throw error;
+        }
       });
   } catch (error) {
     console.log(error);
