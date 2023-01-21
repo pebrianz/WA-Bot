@@ -1,5 +1,5 @@
 {
-  "ignore": ["*.json"],
+  "ignore": ["*.json","tmp/"],
   "execMap": {
     "ts": "ts-node"
   }

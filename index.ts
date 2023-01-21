@@ -1,5 +1,4 @@
 import path from "path";
-import { readdirSync } from "fs";
 
 import makeWASocket, {
   fetchLatestBaileysVersion,
@@ -13,16 +12,9 @@ import pino from "pino";
 
 import MAIN_LOGGER from "./utils/logger";
 import Message from "./utils/message";
-
-const getListLibs = async () => {
-  const files = readdirSync(path.join(__dirname, "/libs/")).filter((file) =>
-    file.endsWith(".ts")
-  );
-  return files;
-};
+import getListLibs from "./utils/getListLibs";
 
 const useStore = !process.argv.includes("--no-store");
-const doReplies = !process.argv.includes("--no-reply");
 
 const logger = MAIN_LOGGER.child({});
 logger.level = "silent";
@@ -41,66 +33,100 @@ setInterval(() => {
 }, 10_000);
 
 async function startSock() {
-  const { version, isLatest } = await fetchLatestBaileysVersion();
-  console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
+  try {
+    const files = await getListLibs();
+    console.log(files);
 
-  const { state, saveState } = useSingleFileAuthState("./tohka_yatogami.json");
+    const { version, isLatest } = await fetchLatestBaileysVersion();
+    console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
 
-  const store = makeInMemoryStore({
-    logger: pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }),
-  });
+    const { state, saveState } = useSingleFileAuthState(
+      "./tohka_yatogami.json"
+    );
 
-  const sock = makeWASocket({
-    version,
-    logger,
-    printQRInTerminal: true,
-    browser: ["Tohka Yatogami", "Safari", "3.0"],
-    auth: state,
-    msgRetryCounterMap,
-    getMessage: async (key) => {
-      if (store) {
-        const msg = await store.loadMessage(key.remoteJid!, key.id!, undefined);
-        return msg?.message || undefined;
+    const store = makeInMemoryStore({
+      logger: pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }),
+    });
+
+    const sock = makeWASocket({
+      version,
+      logger,
+      printQRInTerminal: true,
+      browser: ["Tohka Yatogami", "Safari", "3.0"],
+      auth: state,
+      msgRetryCounterMap,
+      getMessage: async (key) => {
+        if (store) {
+          const msg = await store.loadMessage(
+            key.remoteJid!,
+            key.id!,
+            undefined
+          );
+          return msg?.message || undefined;
+        }
+        return {
+          conversation: "hello",
+        };
+      },
+    });
+
+    store.bind(sock.ev);
+
+    sock.ev.on("creds.update", saveState);
+
+    sock.ev.on("connection.update", (update) => {
+      const { connection, lastDisconnect } = update;
+      if (connection === "close") {
+        // reconnect if not logged out
+        if (
+          (lastDisconnect?.error as Boom)?.output?.statusCode !==
+          DisconnectReason.loggedOut
+        ) {
+          startSock();
+        } else {
+          console.log("Connection closed. You are logged out.");
+        }
+      } else if (connection === "open") {
+        console.log("opened connection");
       }
-      return {
-        conversation: "hello",
-      };
-    },
-  });
+    });
 
-  store.bind(sock.ev);
-
-  sock.ev.on("creds.update", saveState);
-
-  sock.ev.on("connection.update", (update) => {
-    const { connection, lastDisconnect } = update;
-    if (connection === "close") {
-      // reconnect if not logged out
-      if (
-        (lastDisconnect?.error as Boom)?.output?.statusCode !==
-        DisconnectReason.loggedOut
-      ) {
-        startSock();
-      } else {
-        console.log("Connection closed. You are logged out.");
+    sock.ev.on("messages.upsert", async ({ messages }) => {
+      try {
+        const message = messages.at(0);
+        if (!message) return;
+        const msg = new Message(message);
+        console.log(msg);
+        if (
+          msg.body.text == "AERO!!!" &&
+          msg.jid !== "120363044393265188@g.us"
+        ) {
+          const { participants } = await sock.groupMetadata(msg.jid);
+          sock.sendMessage(msg.jid, {
+            text: "AERO!!!!",
+            mentions: participants.map((v) => v.id),
+          });
+        }
+        for (const file of files) {
+          const { default: lib } = await require(path.join(
+            __dirname,
+            "/libs/",
+            file
+          ));
+          const regex = new RegExp(`^.${file}|^. ${file}`);
+          if (regex.test(msg.body.text!)) {
+            await lib(sock, msg);
+          }
+        }
+      } catch (e: any) {
+        console.log(e.messages);
       }
-    } else if (connection === "open") {
-      console.log("opened connection");
-    }
-  });
+    });
 
-  sock.ev.on("messages.upsert", async ({ messages }) => {
-    try {
-      const message = messages.at(0);
-      if (!message) return;
-      //      console.log(message);
-      const msg = new Message(message);
-      console.log(msg);
-    } catch (e: any) {
-      console.error(e.messages);
-    }
-  });
-  return sock;
+    return sock;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 startSock();
