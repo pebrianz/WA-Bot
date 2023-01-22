@@ -48,10 +48,6 @@ async function startSock() {
       "./tohka_yatogami.json"
     );
 
-    const store = makeInMemoryStore({
-      logger: pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }),
-    });
-
     const sock = makeWASocket({
       version,
       logger,
@@ -74,7 +70,7 @@ async function startSock() {
       },
     });
 
-    store.bind(sock.ev);
+    store?.bind(sock.ev);
 
     sock.ev.on("creds.update", saveState);
 
@@ -101,14 +97,16 @@ async function startSock() {
         if (!message) return;
         const msg = new Message(message);
         console.log(msg);
+        if(!msg.body.text) return
         for (const file of files) {
           const { default: lib } = await require(path.join(
             __dirname,
             "/lib/",
             file
           ));
-          const regex = new RegExp(`^.${file}|^. ${file}`);
-          if (regex.test(msg.body.text!)) {
+          const regex = new RegExp(`^(.${file}|. ${file})$`);
+           const text = msg.body.text!.split(" ");
+          if (regex.test(text.at(0) as string)) {
             await lib(sock, msg);
           }
         }
