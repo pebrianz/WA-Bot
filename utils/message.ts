@@ -1,9 +1,9 @@
-import { proto } from "@adiwajshing/baileys";
+import socket, { AnyMessageContent, WASocket } from "@adiwajshing/baileys";
 
 interface body {
   text?: string;
 }
-export default class Message extends proto.WebMessageInfo {
+export default class Message extends socket.proto.WebMessageInfo {
   id: string = "";
   jid: string = "";
   name: string = "";
@@ -11,9 +11,10 @@ export default class Message extends proto.WebMessageInfo {
   isGroup: boolean = false;
   from: string = "";
   body: body;
-  extendedTextMessage?: proto.Message.IExtendedTextMessage;
-  imageMessage?: proto.Message.IImageMessage;
-  constructor(m: proto.IWebMessageInfo) {
+  extendedTextMessage?: socket.proto.Message.IExtendedTextMessage;
+  imageMessage?: socket.proto.Message.IImageMessage;
+  delay: (time: number) => Promise<unknown>;
+  constructor(m: socket.proto.IWebMessageInfo) {
     super(m);
     this.id = m.key.id as string;
     this.jid = m.key.remoteJid as string;
@@ -22,16 +23,32 @@ export default class Message extends proto.WebMessageInfo {
     this.isGroup = this.jid?.endsWith("@g.us");
     this.from = this.isGroup ? (m.key.participant as string) : this.jid;
     this.extendedTextMessage = m.message
-      ?.extendedTextMessage as proto.Message.IExtendedTextMessage;
+      ?.extendedTextMessage as socket.proto.Message.IExtendedTextMessage;
     this.imageMessage =
       m.message?.imageMessage ||
       (m.message?.extendedTextMessage?.contextInfo?.quotedMessage
-        ?.imageMessage as proto.Message.IImageMessage);
+        ?.imageMessage as socket.proto.Message.IImageMessage);
     this.body = {
       text:
         (m.message?.conversation as string) ||
         (m.message?.extendedTextMessage?.text as string) ||
         (m.message?.imageMessage?.caption as string),
     };
+    this.delay = (time: number) => new Promise((res) => setTimeout(res, time));
+  }
+  async sendMessageWTyping(
+    sock: WASocket,
+    jid: string,
+    msg: AnyMessageContent
+  ) {
+    await sock.presenceSubscribe(jid);
+    await this.delay(500);
+
+    await sock.sendPresenceUpdate("composing", jid);
+    await this.delay(2000);
+
+    await sock.sendPresenceUpdate("paused", jid);
+
+    await sock.sendMessage(jid, msg);
   }
 }

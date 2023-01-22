@@ -1,5 +1,6 @@
 import fs from "fs";
-import path from "path";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 
 import makeWASocket, {
   fetchLatestBaileysVersion,
@@ -9,11 +10,13 @@ import makeWASocket, {
   useSingleFileAuthState,
 } from "@adiwajshing/baileys";
 import { Boom } from "@hapi/boom";
-import pino from "pino";
 
-import MAIN_LOGGER from "./utils/logger";
-import Message from "./utils/message";
-import getAllLibIds from "./utils/getAllLibIds";
+import getAllLibIds from "./utils/getAllLibIds.js";
+import MAIN_LOGGER from "./utils/logger.js";
+import Message from "./utils/message.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const dir = "./tmp";
 if (!fs.existsSync(dir)) fs.mkdirSync(dir);
@@ -41,14 +44,15 @@ async function startSock() {
     const files = await getAllLibIds();
     console.log(files);
 
+    const { state, saveState } = useSingleFileAuthState(
+      "./tohka_yatogami_auth.json"
+    );
+
     const { version, isLatest } = await fetchLatestBaileysVersion();
     console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
 
-    const { state, saveState } = useSingleFileAuthState(
-      "./tohka_yatogami.json"
-    );
-
-    const sock = makeWASocket({
+    const socket = makeWASocket.default;
+    const sock = socket({
       version,
       logger,
       printQRInTerminal: true,
@@ -72,8 +76,6 @@ async function startSock() {
 
     store?.bind(sock.ev);
 
-    sock.ev.on("creds.update", saveState);
-
     sock.ev.on("connection.update", (update) => {
       const { connection, lastDisconnect } = update;
       if (connection === "close") {
@@ -89,7 +91,10 @@ async function startSock() {
       } else if (connection === "open") {
         console.log("opened connection");
       }
+      console.log("connection update", update);
     });
+
+    sock.ev.on("creds.update", saveState);
 
     sock.ev.on("messages.upsert", async ({ messages }) => {
       try {
@@ -97,16 +102,16 @@ async function startSock() {
         if (!message) return;
         const msg = new Message(message);
         console.log(msg);
-        if(!msg.body.text) return
+        if (!msg.body.text) return;
         for (const file of files) {
-          const { default: lib } = await require(path.join(
-            __dirname,
-            "/lib/",
-            file
-          ));
-          const regex = new RegExp(`^(.${file}|. ${file})$`);
-           const text = msg.body.text!.split(" ");
-          if (regex.test(text.at(0) as string)) {
+          const { default: lib } = await import(
+            path.join(__dirname, "/lib/", `${file}.js`)
+          );
+          const regex = new RegExp(`^(.${file})|(. ${file})$`);
+          const text = msg.body.text!.split(" ");
+          const command =
+            text.at(1) === file ? text.at(0)!.concat(text.at(1)!) : text.at(0);
+          if (regex.test(command!)) {
             await lib(sock, msg);
           }
         }

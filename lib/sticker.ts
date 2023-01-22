@@ -4,20 +4,14 @@ import ffmpeg from "fluent-ffmpeg";
 
 import { WASocket, downloadContentFromMessage } from "@adiwajshing/baileys";
 
-import Message from "../utils/message";
+import Message from "../utils/message.js";
 
-const sticker = async (conn: WASocket, m: Message) => {
-  if (!m.extendedTextMessage && !m.imageMessage) return;
+const sticker = async (sock: WASocket, msg: Message) => {
+  if (!msg.extendedTextMessage && !msg.imageMessage) return;
   try {
-    let buffer = Buffer.from([]);
-    const stream = await downloadContentFromMessage(m.imageMessage!, "image");
-    for await (const chunk of stream) {
-      buffer = Buffer.concat([buffer, chunk]);
-    }
-    fs.writeFileSync("./tmp/sticker.png", buffer);
-
-    ffmpeg("./tmp/sticker.png")
-      .input("./tmp/sticker.png")
+    const stream = await downloadContentFromMessage(msg.imageMessage!, "image");
+    ffmpeg()
+      .input(stream)
       .addOutputOptions([
         `-vcodec`,
         `libwebp`,
@@ -29,8 +23,8 @@ const sticker = async (conn: WASocket, m: Message) => {
       .on("end", async () => {
         try {
           const sticker = fs.createReadStream("./tmp/sticker.webp");
-          await conn.sendMessage(m.jid, { sticker: { stream: sticker } });
-          shell.exec("rm -rf ./tmp/sticker*");
+          await sock.sendMessage(msg.jid, { sticker: { stream: sticker } });
+          shell.exec("rm -rf ./tmp/sticker.webp");
         } catch (error) {
           throw error;
         }
