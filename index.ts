@@ -1,6 +1,6 @@
 import fs from "fs";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
+import path from "path";
+import {fileURLToPath} from "url";
 
 import makeWASocket, {
   fetchLatestBaileysVersion,
@@ -9,14 +9,14 @@ import makeWASocket, {
   makeInMemoryStore,
   useSingleFileAuthState,
 } from "@adiwajshing/baileys";
-import { Boom } from "@hapi/boom";
+import {Boom} from "@hapi/boom";
 
 import getAllLibIds from "./utils/getAllLibIds.js";
 import MAIN_LOGGER from "./utils/logger.js";
 import Message from "./utils/message.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 const dir = "./tmp";
 if (!fs.existsSync(dir)) fs.mkdirSync(dir);
@@ -32,7 +32,7 @@ const msgRetryCounterMap: MessageRetryMap = {};
 
 // the store maintains the data of the WA connection in memory
 // can be written out to a file & read from it
-const store = useStore ? makeInMemoryStore({ logger }) : undefined;
+const store = useStore ? makeInMemoryStore({logger}) : undefined;
 store?.readFromFile("./tohka_yatogami_store_multi.json");
 // save every 10s
 setInterval(() => {
@@ -44,11 +44,11 @@ async function startSock() {
     const files = await getAllLibIds();
     console.log(files);
 
-    const { state, saveState } = useSingleFileAuthState(
+    const {state, saveState} = useSingleFileAuthState(
       "./tohka_yatogami_auth.json"
     );
 
-    const { version, isLatest } = await fetchLatestBaileysVersion();
+    const {version, isLatest} = await fetchLatestBaileysVersion();
     console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
 
     const socket = makeWASocket.default;
@@ -77,7 +77,7 @@ async function startSock() {
     store?.bind(sock.ev);
 
     sock.ev.on("connection.update", (update) => {
-      const { connection, lastDisconnect } = update;
+      const {connection, lastDisconnect} = update;
       if (connection === "close") {
         // reconnect if not logged out
         if (
@@ -96,7 +96,7 @@ async function startSock() {
 
     sock.ev.on("creds.update", saveState);
 
-    sock.ev.on("messages.upsert", async ({ messages }) => {
+    sock.ev.on("messages.upsert", async ({messages}) => {
       try {
         const message = messages.at(0);
         if (!message) return;
@@ -104,7 +104,7 @@ async function startSock() {
         console.log(msg);
         if (!msg.body.text) return;
         for (const file of files) {
-          const { default: lib } = await import(
+          const {default: lib} = await import(
             path.join(__dirname, "/lib/", `${file}.js`)
           );
           const regex = new RegExp(`^(.${file})|(. ${file})$`);
