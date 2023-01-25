@@ -1,4 +1,4 @@
-import socket, { AnyMessageContent, WASocket } from "@adiwajshing/baileys";
+import socket, {AnyMessageContent, WASocket, delay} from "@adiwajshing/baileys";
 
 interface body {
   text?: string;
@@ -13,7 +13,6 @@ export default class Message extends socket.proto.WebMessageInfo {
   body: body;
   extendedTextMessage?: socket.proto.Message.IExtendedTextMessage;
   imageMessage?: socket.proto.Message.IImageMessage;
-  delay: (time: number) => Promise<unknown>;
   constructor(m: socket.proto.IWebMessageInfo) {
     super(m);
     this.id = m.key.id as string;
@@ -34,7 +33,6 @@ export default class Message extends socket.proto.WebMessageInfo {
         (m.message?.extendedTextMessage?.text as string) ||
         (m.message?.imageMessage?.caption as string),
     };
-    this.delay = (time: number) => new Promise((res) => setTimeout(res, time));
   }
   async sendMessageWTyping(
     sock: WASocket,
@@ -42,10 +40,10 @@ export default class Message extends socket.proto.WebMessageInfo {
     msg: AnyMessageContent
   ) {
     await sock.presenceSubscribe(jid);
-    await this.delay(500);
+    await delay(500);
 
     await sock.sendPresenceUpdate("composing", jid);
-    await this.delay(2000);
+    await delay(2000);
 
     await sock.sendPresenceUpdate("paused", jid);
 

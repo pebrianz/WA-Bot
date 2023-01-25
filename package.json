@@ -11,12 +11,11 @@
    "author": "",
    "license": "ISC",
    "dependencies": {
-      "@adiwajshing/baileys": "^4.4.0",
+      "@adiwajshing/baileys": "^5.0.0",
       "@adiwajshing/keyed-db": "^0.2.4",
       "@hapi/boom": "^10.0.0",
       "@types/fluent-ffmpeg": "^2.1.20",
       "fluent-ffmpeg": "^2.1.2",
-      "module": "^1.2.5",
       "nodemon": "^2.0.20",
       "pino": "^8.8.0",
       "qrcode-terminal": "^0.12.0",

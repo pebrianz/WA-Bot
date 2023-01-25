@@ -7,7 +7,8 @@ import makeWASocket, {
   MessageRetryMap,
   DisconnectReason,
   makeInMemoryStore,
-  useSingleFileAuthState,
+  makeCacheableSignalKeyStore,
+  useMultiFileAuthState
 } from "@adiwajshing/baileys";
 import {Boom} from "@hapi/boom";
 
@@ -44,8 +45,8 @@ async function startSock() {
     const files = await getAllLibIds();
     console.log(files);
 
-    const {state, saveState} = useSingleFileAuthState(
-      "./tohka_yatogami_auth.json"
+    const {state, saveCreds} = await useMultiFileAuthState(
+      "./tohka_yatogami_auth_info"
     );
 
     const {version, isLatest} = await fetchLatestBaileysVersion();
@@ -57,14 +58,17 @@ async function startSock() {
       logger,
       printQRInTerminal: true,
       browser: ["Tohka Yatogami", "Safari", "3.0"],
-      auth: state,
+      auth: {
+        creds: state.creds,
+        /** caching makes the store faster to send/recv messages */
+        keys: makeCacheableSignalKeyStore(state.keys, logger),
+      },
       msgRetryCounterMap,
       getMessage: async (key) => {
         if (store) {
           const msg = await store.loadMessage(
             key.remoteJid!,
             key.id!,
-            undefined
           );
           return msg?.message || undefined;
         }
@@ -94,7 +98,7 @@ async function startSock() {
       console.log("connection update", update);
     });
 
-    sock.ev.on("creds.update", saveState);
+    sock.ev.on("creds.update", saveCreds);
 
     sock.ev.on("messages.upsert", async ({messages}) => {
       try {
