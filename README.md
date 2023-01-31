@@ -1,5 +1,5 @@
 # TohkaYatogami-WABOT
-WhatsApp bot using [Baileys](https://github.com/Baileys)
+WhatsApp bot using [Baileys](https://github.com/adiwajshing/Baileys)
 
 ## Installation
 Make sure you have installed git npm nodejs ffmpeg on your system
