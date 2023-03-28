@@ -12,7 +12,7 @@ const owner = async (sock: WASocket, msg: Message) => {
       "N:;Pebrianz;;;\n" +
       "FN:Pebrianz\n" +
       "ORG:;\n" +
-      "item1.TEL;type=CELL;type=VOICE;waid=6285603552884:+62 856-0355-2884\n" +
+      "item1.TEL;type=CELL;type=VOICE;waid=6283128977625:+62 831-2897-7625\n" +
       "item1.X-ABLabel:Mobile\n" +
       "END:VCARD";
     const contacts: proto.Message.IContactMessage = {

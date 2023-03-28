@@ -1,4 +1,4 @@
-import socket, {AnyMessageContent, WASocket, delay} from "@adiwajshing/baileys";
+import socket, {AnyMessageContent, WASocket, delay} from "@adiwajshing/baileys"
 
 interface body {
   text?: string;
@@ -11,7 +11,7 @@ export default class Message extends socket.proto.WebMessageInfo {
   isGroup: boolean = false;
   from: string = "";
   body: body;
-  extendedTextMessage?: socket.proto.Message.IExtendedTextMessage;
+  extendedTextMessage?:socket.proto.Message.IExtendedTextMessage;
   imageMessage?: socket.proto.Message.IImageMessage;
   constructor(m: socket.proto.IWebMessageInfo) {
     super(m);

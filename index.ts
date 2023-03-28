@@ -4,9 +4,9 @@ import {fileURLToPath} from "url";
 
 import makeWASocket, {
   fetchLatestBaileysVersion,
-  MessageRetryMap,
   DisconnectReason,
   makeInMemoryStore,
+  MessageRetryMap,
   makeCacheableSignalKeyStore,
   useMultiFileAuthState
 } from "@adiwajshing/baileys";
@@ -29,7 +29,8 @@ logger.level = "silent";
 
 // external map to store retry counts of messages when decryption/encryption fails
 // keep this out of the socket itself, so as to prevent a message decryption/encryption loop across socket restarts
-const msgRetryCounterMap: MessageRetryMap = {};
+const msgRetryCounterMap: MessageRetryMap = { }
+
 
 // the store maintains the data of the WA connection in memory
 // can be written out to a file & read from it
@@ -52,7 +53,7 @@ async function startSock() {
     const {version, isLatest} = await fetchLatestBaileysVersion();
     console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
 
-    const socket = makeWASocket.default;
+    const socket = makeWASocket.default
     const sock = socket({
       version,
       logger,
@@ -106,6 +107,7 @@ async function startSock() {
         if (!message) return;
         const msg = new Message(message);
         console.log(msg);
+        if(msg.jid !== '120363043888969214@g.us' && msg.jid !== '6283128977625@s.whatsapp.net') return
         if (!msg.body.text) return;
         for (const file of files) {
           const {default: lib} = await import(

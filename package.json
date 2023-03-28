@@ -15,10 +15,12 @@
       "@adiwajshing/keyed-db": "^0.2.4",
       "@hapi/boom": "^10.0.0",
       "@types/fluent-ffmpeg": "^2.1.20",
+      "@types/node": "^18.15.10",
       "fluent-ffmpeg": "^2.1.2",
       "nodemon": "^2.0.20",
       "pino": "^8.8.0",
       "qrcode-terminal": "^0.12.0",
-      "ts-node": "^10.9.1"
+      "ts-node": "^10.9.1",
+      "typescript": "^5.0.2"
    }
 }
