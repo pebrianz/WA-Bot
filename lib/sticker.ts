@@ -24,7 +24,7 @@ const sticker = async (sock: WASocket, msg: Message) => {
         try {
           const sticker = fs.createReadStream("./tmp/sticker.webp");
           await sock.sendMessage(msg.jid, { sticker: { stream: sticker } });
-          shell.exec("rm -rf ./tmp/sticker.webp");
+          shell.exec("rm -rf ./tmp/sticker*");
         } catch (error) {
           throw error;
         }
