@@ -106,8 +106,7 @@ async function startSock() {
         const message = messages.at(0);
         if (!message) return;
         const msg = new Message(message);
-        console.log(msg);
-        if(msg.jid !== '120363043888969214@g.us' && msg.jid !== '6283128977625@s.whatsapp.net') return
+        console.log(msg)
         if (!msg.body.text) return;
         for (const file of files) {
           const {default: lib} = await import(
@@ -118,6 +117,7 @@ async function startSock() {
           const command =
             text.at(1) === file ? text.at(0)!.concat(text.at(1)!) : text.at(0);
           if (regex.test(command!)) {
+            console.log(regex)
             await lib(sock, msg);
           }
         }
