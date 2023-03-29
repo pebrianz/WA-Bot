@@ -9,11 +9,9 @@ const owner = async (sock: WASocket, msg: Message) => {
     const vcard =
       "BEGIN:VCARD\n" +
       "VERSION:3.0\n" +
-      "N:;Pebrianz;;;\n" +
       "FN:Pebrianz\n" +
       "ORG:;\n" +
-      "item1.TEL;type=CELL;type=VOICE;waid=6283128977625:+62 831-2897-7625\n" +
-      "item1.X-ABLabel:Mobile\n" +
+      "TEL;type=CELL;type=VOICE;waid=6283128977625:+62 831-2897-7625\n" +
       "END:VCARD";
     const contacts: proto.Message.IContactMessage = {
       displayName: "Pebrianz",
@@ -25,7 +23,11 @@ const owner = async (sock: WASocket, msg: Message) => {
     const audio = "./database/owner.opus";
     if (!fs.existsSync(audio)) return;
     const stream = fs.createReadStream(audio);
-    await sock.sendMessage(msg.jid, { audio: { stream } }, { quoted: contact });
+    await sock.sendMessage(
+      msg.jid,
+      { audio: { stream }, ptt: true },
+      { quoted: contact }
+    );
   } catch (error) {
     console.log(error);
   }

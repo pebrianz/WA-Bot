@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import {fileURLToPath} from "url";
+import { fileURLToPath } from "url";
 
 import makeWASocket, {
   fetchLatestBaileysVersion,
@@ -8,16 +8,16 @@ import makeWASocket, {
   makeInMemoryStore,
   MessageRetryMap,
   makeCacheableSignalKeyStore,
-  useMultiFileAuthState
+  useMultiFileAuthState,
 } from "@adiwajshing/baileys";
-import {Boom} from "@hapi/boom";
+import { Boom } from "@hapi/boom";
 
 import getAllLibIds from "./utils/getAllLibIds.js";
 import MAIN_LOGGER from "./utils/logger.js";
 import Message from "./utils/message.js";
 
 // const __filename = fileURLToPath(import.meta.url);
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const dir = "./tmp";
 if (!fs.existsSync(dir)) fs.mkdirSync(dir);
@@ -29,12 +29,11 @@ logger.level = "silent";
 
 // external map to store retry counts of messages when decryption/encryption fails
 // keep this out of the socket itself, so as to prevent a message decryption/encryption loop across socket restarts
-const msgRetryCounterMap: MessageRetryMap = { }
-
+const msgRetryCounterMap: MessageRetryMap = {};
 
 // the store maintains the data of the WA connection in memory
 // can be written out to a file & read from it
-const store = useStore ? makeInMemoryStore({logger}) : undefined;
+export const store = useStore ? makeInMemoryStore({ logger }) : undefined;
 store?.readFromFile("./tohka_yatogami_store_multi.json");
 // save every 10s
 setInterval(() => {
@@ -46,14 +45,14 @@ async function startSock() {
     const files = await getAllLibIds();
     console.log(files);
 
-    const {state, saveCreds} = await useMultiFileAuthState(
+    const { state, saveCreds } = await useMultiFileAuthState(
       "./tohka_yatogami_auth_info"
     );
 
-    const {version, isLatest} = await fetchLatestBaileysVersion();
+    const { version, isLatest } = await fetchLatestBaileysVersion();
     console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
 
-    const socket = makeWASocket.default
+    const socket = makeWASocket.default;
     const sock = socket({
       version,
       logger,
@@ -67,10 +66,7 @@ async function startSock() {
       msgRetryCounterMap,
       getMessage: async (key) => {
         if (store) {
-          const msg = await store.loadMessage(
-            key.remoteJid!,
-            key.id!,
-          );
+          const msg = await store.loadMessage(key.remoteJid!, key.id!);
           return msg?.message || undefined;
         }
         return {
@@ -82,7 +78,7 @@ async function startSock() {
     store?.bind(sock.ev);
 
     sock.ev.on("connection.update", (update) => {
-      const {connection, lastDisconnect} = update;
+      const { connection, lastDisconnect } = update;
       if (connection === "close") {
         // reconnect if not logged out
         if (
@@ -101,15 +97,16 @@ async function startSock() {
 
     sock.ev.on("creds.update", saveCreds);
 
-    sock.ev.on("messages.upsert", async ({messages}) => {
+    sock.ev.on("messages.upsert", async ({ messages }) => {
       try {
         const message = messages.at(0);
         if (!message) return;
+        //   console.log(message)
         const msg = new Message(message);
-        console.log(msg)
+        console.log(msg);
         if (!msg.body.text) return;
         for (const file of files) {
-          const {default: lib} = await import(
+          const { default: lib } = await import(
             path.join(__dirname, "/lib/", `${file}.js`)
           );
           const regex = new RegExp(`^(.${file})|(. ${file})$`);
@@ -117,7 +114,7 @@ async function startSock() {
           const command =
             text.at(1) === file ? text.at(0)!.concat(text.at(1)!) : text.at(0);
           if (regex.test(command!)) {
-            console.log(regex)
+            console.log(regex);
             await lib(sock, msg);
           }
         }
