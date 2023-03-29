@@ -1,6 +1,5 @@
 node_modules/
-.package*
-.vscode*
+
 package-lock.json
 
 tohka_yatogami*
