@@ -11,10 +11,10 @@ const del = async (sock: WASocket, msg: Message) => {
       jid!,
       msg.extendedTextMessage?.contextInfo?.stanzaId!
     );
-    console.log(m)
+    console.log(m);
     if (!m) return;
     if (!m.key.fromMe) return;
-    if (m?.status === 1) {
+    if (m.status === 1) {
       await sock.sendMessage(msg.jid, {
         delete: { id: msg.extendedTextMessage?.contextInfo?.stanzaId },
       });

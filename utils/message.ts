@@ -1,4 +1,8 @@
-import socket, {AnyMessageContent, WASocket, delay} from "@adiwajshing/baileys"
+import socket, {
+  AnyMessageContent,
+  WASocket,
+  delay,
+} from "@adiwajshing/baileys";
 
 interface body {
   text?: string;
@@ -11,9 +15,10 @@ export default class Message extends socket.proto.WebMessageInfo {
   isGroup: boolean = false;
   from: string = "";
   body: body;
-  isBaileys: boolean = false
-  extendedTextMessage?:socket.proto.Message.IExtendedTextMessage;
+  isBaileys: boolean = false;
+  extendedTextMessage?: socket.proto.Message.IExtendedTextMessage;
   imageMessage?: socket.proto.Message.IImageMessage;
+  stickerMessage?: socket.proto.Message.IStickerMessage;
   constructor(m: socket.proto.IWebMessageInfo) {
     super(m);
     this.id = m.key.id as string;
@@ -22,13 +27,15 @@ export default class Message extends socket.proto.WebMessageInfo {
     this.fromMe = m.key.fromMe as boolean;
     this.isGroup = this.jid?.endsWith("@g.us");
     this.from = this.isGroup ? (m.key.participant as string) : this.jid;
-    this.isBaileys = (m.status === 1)
+    this.isBaileys = m.status === 1;
     this.extendedTextMessage = m.message
       ?.extendedTextMessage as socket.proto.Message.IExtendedTextMessage;
     this.imageMessage =
       m.message?.imageMessage ||
       (m.message?.extendedTextMessage?.contextInfo?.quotedMessage
         ?.imageMessage as socket.proto.Message.IImageMessage);
+    this.stickerMessage = m.message?.extendedTextMessage?.contextInfo
+      ?.quotedMessage?.stickerMessage as socket.proto.Message.IStickerMessage;
     this.body = {
       text:
         (m.message?.conversation as string) ||
