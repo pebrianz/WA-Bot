@@ -19,7 +19,7 @@ const owner = async (sock: WASocket, msg: Message) => {
     };
     const contact = await sock.sendMessage(msg.jid, {
       contacts: { contacts: [contacts] },
-    });
+    },{quoted: msg});
     const audio = "./database/owner.opus";
     if (!fs.existsSync(audio)) return;
     const stream = fs.createReadStream(audio);
