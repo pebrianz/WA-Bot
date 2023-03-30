@@ -1,4 +1,4 @@
-# TohkaYatogami-WABOT
+# Ashaka Bot
 WhatsApp bot using [Baileys](https://github.com/adiwajshing/Baileys)
 
 ## Installation
