@@ -5,7 +5,7 @@ import Message from "../utils/message.js";
 
 const ai = async (sock: WASocket, msg: Message) => {
   try {
-    const text = msg.body.text?.replace(/.ai |. ai /, "");
+    const text = msg.body.text?.replace(/. ?ai ?/, "");
 
     const configuration = new Configuration({
       apiKey: process.env.OPENAI_SECRET_KEY,

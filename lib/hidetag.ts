@@ -4,7 +4,7 @@ import Message from "../utils/message.js";
 
 const hidetag = async (sock: WASocket, msg: Message) => {
   try {
-    const text = msg.body.text?.replace(/.hidetag|. hidetag/, "");
+    const text = msg.body.text?.replace(/. ?hidetag ?/, "");
     const { participants } = await sock.groupMetadata(msg.jid);
     await sock.sendMessage(msg.jid, {
       text: text!,

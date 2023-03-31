@@ -5,7 +5,7 @@ import Message from "../utils/message.js";
 const say = async (sock: WASocket, msg: Message) => {
   try {
     const mentions = msg.contextInfo?.mentionedJid || [];
-    const text = msg.body.text?.replace(/.say |. say /, "");
+    const text = msg.body.text?.replace(/. ?say ?/, "");
     await msg.sendMessageWTyping(sock, msg.jid, {
       text: text!,
       mentions: mentions,
