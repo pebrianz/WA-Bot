@@ -17,19 +17,31 @@ const owner = async (sock: WASocket, msg: Message) => {
       displayName: "Pebrianz",
       vcard,
     };
-    const contact = await sock.sendMessage(msg.jid, {
-      contacts: { contacts: [contacts] },
-    },{quoted: msg});
+    const contact = await sock.sendMessage(
+      msg.jid,
+      {
+        contacts: { contacts: [contacts] },
+      },
+      { quoted: msg }
+    );
     const audio = "./database/owner.opus";
     if (!fs.existsSync(audio)) return;
     const stream = fs.createReadStream(audio);
-    await sock.sendMessage(
+    const vn = await sock.sendMessage(
       msg.jid,
       { audio: { stream }, ptt: true },
       { quoted: contact }
     );
+    const sticker = "./database/sticker-cute.webp";
+    if (!fs.existsSync(sticker)) return;
+    const ss = fs.createReadStream(sticker);
+    await sock.sendMessage(
+      msg.jid,
+      { sticker: { stream: ss } },
+      { quoted: vn }
+    );
   } catch (error) {
-    console.log(error);
+    throw error;
   }
 };
 

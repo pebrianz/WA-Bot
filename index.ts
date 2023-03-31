@@ -11,6 +11,8 @@ import makeWASocket, {
   useMultiFileAuthState,
 } from "@adiwajshing/baileys";
 import { Boom } from "@hapi/boom";
+import dotenv from "dotenv";
+dotenv.config();
 
 import getAllLibIds from "./utils/getAllLibIds.js";
 import MAIN_LOGGER from "./utils/logger.js";
@@ -30,11 +32,12 @@ logger.level = "silent";
 // external map to store retry counts of messages when decryption/encryption fails
 // keep this out of the socket itself, so as to prevent a message decryption/encryption loop across socket restarts
 const msgRetryCounterMap: MessageRetryMap = {};
-
+console.log("Sedang memeriksa..........");
 // the store maintains the data of the WA connection in memory
 // can be written out to a file & read from it
 export const store = useStore ? makeInMemoryStore({ logger }) : undefined;
 store?.readFromFile("./tohka_yatogami_store_multi.json");
+
 // save every 10s
 setInterval(() => {
   store?.writeToFile("./tohka_yatogami_store_multi.json");
@@ -44,7 +47,12 @@ async function startSock() {
   try {
     const files = await getAllLibIds();
     console.log(files);
-
+    console.log("Memproses.........");
+    const promises = files.map(
+      (file) => import(path.join(__dirname, "/lib/", `${file}.js`))
+    );
+    const libs = await Promise.all(promises);
+    console.log("Selesai");
     const { state, saveCreds } = await useMultiFileAuthState(
       "./tohka_yatogami_auth_info"
     );
@@ -101,24 +109,41 @@ async function startSock() {
       try {
         const message = messages.at(0);
         if (!message) return;
-        //   console.log(message)
         const msg = new Message(message);
         console.log(msg);
-        if (!msg.body.text) return;
-        for (const file of files) {
-          const { default: lib } = await import(
-            path.join(__dirname, "/lib/", `${file}.js`)
-          );
-          const regex = new RegExp(`^(.${file})|(. ${file})$`);
+        const prefix = "[>.!/]";
+        let t = msg.body.text || "";
+        let r = new RegExp(`^(${prefix})`);
+        if (!r.test(t!)) return;
+        //      if (msg.isGroup && msg.jid !== "120363043888969214@g.us") return;
+
+        for (let i = 0; i < files.length; i++) {
+          const lib = libs[i].default;
+          const regex = new RegExp(`^(${prefix} ?${files[i]})$`);
           const text = msg.body.text!.split(" ");
           const command =
-            text.at(1) === file ? text.at(0)!.concat(text.at(1)!) : text.at(0);
+            text.at(1) === files[i]
+              ? text.at(0)!.concat(text.at(1)!)
+              : text.at(0);
           if (regex.test(command!)) {
             console.log(regex);
-            await lib(sock, msg);
+            try {
+              console.log("Sedang memproses.......");
+              await sock.sendMessage(
+                msg.jid,
+                {
+                  text: "Sedang memproses.......",
+                },
+                { quoted: msg }
+              );
+              await lib(sock, msg);
+            } catch (error: any) {
+              const e = error.toString();
+              await sock.sendMessage(msg.jid, { text: e }, { quoted: msg });
+            }
           }
         }
-      } catch (error: any) {
+      } catch (error) {
         console.log(error);
       }
     });

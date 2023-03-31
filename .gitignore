@@ -4,4 +4,6 @@ package-lock.json
 
 tohka_yatogami*
 
+.env
+
 database/

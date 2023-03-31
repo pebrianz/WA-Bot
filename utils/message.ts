@@ -1,5 +1,6 @@
 import socket, {
   AnyMessageContent,
+  MiscMessageGenerationOptions,
   WASocket,
   delay,
 } from "@adiwajshing/baileys";
@@ -17,6 +18,7 @@ export default class Message extends socket.proto.WebMessageInfo {
   body: body;
   isBaileys: boolean = false;
   extendedTextMessage?: socket.proto.Message.IExtendedTextMessage;
+  contextInfo?: socket.proto.IContextInfo;
   imageMessage?: socket.proto.Message.IImageMessage;
   stickerMessage?: socket.proto.Message.IStickerMessage;
   constructor(m: socket.proto.IWebMessageInfo) {
@@ -30,6 +32,8 @@ export default class Message extends socket.proto.WebMessageInfo {
     this.isBaileys = m.status === 1;
     this.extendedTextMessage = m.message
       ?.extendedTextMessage as socket.proto.Message.IExtendedTextMessage;
+    this.contextInfo = m.message?.extendedTextMessage
+      ?.contextInfo as socket.proto.ContextInfo;
     this.imageMessage =
       m.message?.imageMessage ||
       (m.message?.extendedTextMessage?.contextInfo?.quotedMessage
@@ -46,7 +50,8 @@ export default class Message extends socket.proto.WebMessageInfo {
   async sendMessageWTyping(
     sock: WASocket,
     jid: string,
-    msg: AnyMessageContent
+    msg: AnyMessageContent,
+    op?: MiscMessageGenerationOptions
   ) {
     await sock.presenceSubscribe(jid);
     await delay(500);
@@ -56,6 +61,6 @@ export default class Message extends socket.proto.WebMessageInfo {
 
     await sock.sendPresenceUpdate("paused", jid);
 
-    await sock.sendMessage(jid, msg);
+    await sock.sendMessage(jid, msg, op);
   }
 }
