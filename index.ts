@@ -132,7 +132,7 @@ async function startSock() {
               await sock.sendMessage(
                 msg.jid,
                 {
-                  text: "Sedang memproses.......",
+                  text: "Sedang memproses.........",
                 },
                 { quoted: msg }
               );
