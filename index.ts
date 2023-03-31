@@ -115,7 +115,7 @@ async function startSock() {
         let t = msg.body.text || "";
         let r = new RegExp(`^(${prefix})`);
         if (!r.test(t!)) return;
-        if (msg.isGroup && msg.jid !== "120363043888969214@g.us") return;
+//        if ((msg.isGroup && msg.jid !== "120363043888969214@g.us")&&(msg.isGroup && msg.jid !==  '120363047747393581@g.us')&&(msg.isGroup && msg.jid !== '120363044393265188@g.us')) return;
         for (let i = 0; i < files.length; i++) {
           const lib = libs[i].default;
           const regex = new RegExp(`^(${prefix} ?${files[i]})$`);
