@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import NodeCache from 'node-cache'
 import makeWASocket, {
   fetchLatestBaileysVersion,
   DisconnectReason,
@@ -32,6 +32,7 @@ logger.level = "silent";
 // external map to store retry counts of messages when decryption/encryption fails
 // keep this out of the socket itself, so as to prevent a message decryption/encryption loop across socket restarts
 const msgRetryCounterMap: MessageRetryMap = {};
+//const msgRetryCounterMap = new NodeCache()
 console.log("Sedang memeriksa..........");
 // the store maintains the data of the WA connection in memory
 // can be written out to a file & read from it
@@ -72,14 +73,13 @@ async function startSock() {
         keys: makeCacheableSignalKeyStore(state.keys, logger),
       },
       msgRetryCounterMap,
+generateHighQualityLinkPreview: true,
       getMessage: async (key) => {
         if (store) {
           const msg = await store.loadMessage(key.remoteJid!, key.id!);
           return msg?.message || undefined;
         }
-        return {
-          conversation: "hello",
-        };
+        return makeWASocket.proto.Message.fromObject({})
       },
     });
 
@@ -115,7 +115,7 @@ async function startSock() {
         let t = msg.body.text || "";
         let r = new RegExp(`^(${prefix})`);
         if (!r.test(t!)) return;
-//        if ((msg.isGroup && msg.jid !== "120363043888969214@g.us")&&(msg.isGroup && msg.jid !==  '120363047747393581@g.us')&&(msg.isGroup && msg.jid !== '120363044393265188@g.us')) return;
+        if ((msg.isGroup && msg.jid !== "120363043888969214@g.us")&&(msg.isGroup && msg.jid !==  '120363047747393581@g.us')&&(msg.isGroup && msg.jid !== '120363044393265188@g.us')) return;
         for (let i = 0; i < files.length; i++) {
           const lib = libs[i].default;
           const regex = new RegExp(`^(${prefix} ?${files[i]})$`);
@@ -128,6 +128,7 @@ async function startSock() {
             console.log(regex);
             try {
               console.log("Sedang memproses.......");
+/*
               sock.sendMessage(
                 msg.jid,
                 {
@@ -135,6 +136,7 @@ async function startSock() {
                 },
                 { quoted: msg }
               );
+*/
               await lib(sock, msg);
             } catch (error: any) {
               const e = error.toString();
