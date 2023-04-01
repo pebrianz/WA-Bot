@@ -14,7 +14,7 @@ Platform:
   linux arm64
 
 Trace: 
-  SyntaxError: /home/pebrianz/bot/package.json: Unexpected token � in JSON at position 0
+  SyntaxError: /home/pebrianz/bot/package.json: Unexpected token # in JSON at position 162
       at JSON.parse (<anonymous>)
       at /usr/local/lib/node_modules/yarn/lib/cli.js:1629:59
       at Generator.next (<anonymous>)
@@ -22,15 +22,16 @@ Trace:
       at /usr/local/lib/node_modules/yarn/lib/cli.js:321:13
 
 npm manifest: 
-  �{
+  {
     "name": "tohkayatogami",
     "version": "3.0.0",
     "description": "",
     "main": "index.ts",
     "type": "module",
     "scripts": {
-      "start": "nodemon start index.ts"
-  //    "test": "echo \"Error: no test specified\" && exit 1"
+      "start": "nodemon index.ts",
+  #    "start": "forever start -v -c ts-node-esm index.ts",
+      "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
     "license": "ISC",

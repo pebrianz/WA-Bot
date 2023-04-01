@@ -5,7 +5,8 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "forever start -v -c ts-node-esm index.ts",
+    "start": "nodemon index.ts",
+    "forever": "forever start -v -c ts-node-esm index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
