@@ -1,4 +1,4 @@
-# TohkaYatogami Bot
+# WA Bot
 
 WhatsApp bot using [Baileys](https://github.com/adiwajshing/Baileys)
 
